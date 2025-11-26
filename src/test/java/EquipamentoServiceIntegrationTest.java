@@ -28,7 +28,6 @@ public class EquipamentoServiceIntegrationTest {
                     );
             """;
 
-
     private static final String SQL_DROP_TABLE = "DROP TABLE IF EXISTS Equipamento;";
 
 
