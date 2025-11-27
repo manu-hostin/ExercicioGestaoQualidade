@@ -1,8 +1,11 @@
 package org.example.dto;
 
 public class RelatorioParadaDTO {
+
     private Long equipamentoId;
+
     private String nomeEquipamento;
+
     private double totalHorasParadas;
 
     public RelatorioParadaDTO(Long equipamentoId, String nomeEquipamento, double totalHorasParadas) {

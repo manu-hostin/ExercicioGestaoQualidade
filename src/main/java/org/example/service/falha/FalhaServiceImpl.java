@@ -15,7 +15,7 @@ public class FalhaServiceImpl implements FalhaService{
     public Falha registrarNovaFalha(Falha falha) throws SQLException {
         EquipamentoRepository eqRepo = new EquipamentoRepository();
 
-        if(eqRepo.verificarExistencia(falha.getEquipamentoId())){
+        if(!eqRepo.verificarExistencia(falha.getEquipamentoId())){
             throw new IllegalArgumentException("Equipamento não encontrado!");
         }
 
@@ -31,6 +31,7 @@ public class FalhaServiceImpl implements FalhaService{
 
     @Override
     public List<Falha> buscarFalhasCriticasAbertas() throws SQLException {
-        return List.of();
+        List<Falha> falhas = repo.buscarFalhasAbertas();
+        return falhas;
     }
 }

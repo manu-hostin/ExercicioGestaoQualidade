@@ -57,7 +57,7 @@ public class EquipamentoRepository {
 
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                return true;
+                return rs.getLong(1) > 0;
             }
         }
         return false;
