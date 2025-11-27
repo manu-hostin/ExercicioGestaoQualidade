@@ -1,13 +1,17 @@
 package org.example.repository;
 
 import org.example.database.Conexao;
+import org.example.dto.FalhaDetalhadaDTO;
+import org.example.dto.RelatorioParadaDTO;
 import org.example.model.Falha;
 
 import java.math.BigDecimal;
+import java.security.PublicKey;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class FalhaRepository {
 
@@ -128,5 +132,35 @@ public class FalhaRepository {
         }
         return null;
     }
+    public List<RelatorioParadaDTO> gerarRelatorioTempoParada () throws SQLException {
+        String query = """
+                SELECT e.id,
+                       e.nome,
+                       f.tempoParadaHoras
+                FROM Equipamento e
+                JOIN Falha f ON f.equipamentoID = e.id
+                """;
+        List<RelatorioParadaDTO> relatorio = new ArrayList<>();
+
+        try (Connection conn = Conexao.conectar();
+            PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Long id = rs.getLong("id");
+                String nome = rs.getString("nome");
+                Double tempo = rs.getDouble("tempoParadaHoras");
+
+                RelatorioParadaDTO rel = new RelatorioParadaDTO(id, nome, tempo);
+                relatorio.add(rel);
+            }
+        }
+        return relatorio;
+    }
+    public Optional<FalhaDetalhadaDTO> buscarDetalhesCompletosFalha(long falhaId) throws SQLException {
+
+    }
+
 
 }

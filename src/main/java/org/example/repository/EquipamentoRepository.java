@@ -1,9 +1,13 @@
 package org.example.repository;
 
 import org.example.database.Conexao;
+import org.example.dto.EquipamentoContagemFalhasDTO;
 import org.example.model.Equipamento;
 
 import java.sql.*;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 public class EquipamentoRepository {
 
@@ -74,5 +78,71 @@ public class EquipamentoRepository {
 
         }
     }
+    public List<Equipamento> buscarEquipamentosSemFalhasPorPeriodo (LocalDate dataInicio, LocalDate datafim) throws SQLException {
+        String query = """
+                    SELECT id
+                          ,nome
+                          ,numeroDeSerie
+                          ,areaSetor
+                          ,statusOperacional
+                           FROM Equipamento
+                           WHERE id NOT IN (SELECT equipamentoId
+                                            FROM Falha
+                                            WHERE dataHoraOcorrencia >= ?
+                                            AND dataHoraOcorrencia <= ?)
+                """;
+        List<Equipamento> equipamentos = new ArrayList<>();
+        try (Connection conn = Conexao.conectar();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
 
+            stmt.setDate(1, java.sql.Date.valueOf(dataInicio));
+            stmt.setDate(2, Date.valueOf(datafim));
+
+            ResultSet rs = stmt.executeQuery();
+
+            while(rs.next()){
+                equipamentos.add(
+                        new Equipamento(
+                                rs.getLong("id"),
+                                rs.getString("nome"),
+                                rs.getString("numeroDeSerie"),
+                                rs.getString("areaSetor"),
+                                rs.getString("statusOperacional")
+                        )
+                );
+            }
+        }
+        return equipamentos;
+    }
+    public List<EquipamentoContagemFalhasDTO> gerarRelatorioManutencaoPreventiva(int contagemMinimaFalhas) throws SQLException{
+        List<EquipamentoContagemFalhasDTO> resultado = new ArrayList<>();
+        String sql = """
+                    SELECT
+                        e.id,
+                        e.nome,
+                        COUNT(f.id) AS totalFalhas
+                    FROM Equipamento e
+                    LEFT JOIN Falha f ON f.equipamentoId = e.id
+                    GROUP BY e.id, e.nome
+                    HAVING COUNT(f.id) >= ?
+        """;
+
+        try (Connection conn = Conexao.conectar();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, contagemMinimaFalhas);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                EquipamentoContagemFalhasDTO dto =
+                        new EquipamentoContagemFalhasDTO(
+                                rs.getLong("id"),
+                                rs.getString("nome"),
+                                rs.getInt("totalFalhas")
+                        );
+                resultado.add(dto);
+            }
+        }
+        return resultado;
+    }
 }
